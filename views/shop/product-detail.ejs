@@ -4,4 +4,17 @@
   </head>
   <body>
     <%- include('../includes/navigation.ejs')%> 
+    <main>
+      <div>
+        <img src="<%= prod.imageUrl %>" alt="<%= prod.title %>">
+      </div>
+      <div>
+        <h1><%= prod.title %></h1>        
+        <h3>$<%= prod.price %></h3>        
+        <h4><%= prod.description %></h4>        
+      </div>
+      <form action="/cart" method="post">
+        <button class="btn" type="submit">Add to cart</button>
+      </form>
+    </main>
 <%- include('../includes/end.ejs')%>

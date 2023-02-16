@@ -51,6 +51,13 @@ exports.getOrders = (req, res, next) => {
   });
 };
 exports.getProductDetail = (req, res, next) => {
-  const productId = req.params.productId;
-  console.log(productId);
+  Product.findProduct(req.params.productId, (product) => {
+    res.render('shop/product-detail', {
+      // default your are in views folder
+      prod: product,
+      pageTitle: 'Details',
+      path: '/products',
+    });
+  });
+
 };
