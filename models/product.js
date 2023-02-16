@@ -15,6 +15,7 @@ const getProductsFromFile = (callback) => {
 
 module.exports = class Product {
   constructor(title, imageUrl, description, price) {
+    this.id = Math.random().toString();
     this.title = title;
     this.imageUrl = imageUrl;
     this.description = description;
