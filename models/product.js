@@ -41,6 +41,4 @@ module.exports = class Product {
       callback(product);
     })
   }
-
-  
 };

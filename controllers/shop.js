@@ -30,6 +30,18 @@ exports.getCart = (req, res, next) => {
     });
   });
 };
+exports.postCart = (req, res, next) => {
+  console.log(req.body.productId);
+  res.redirect('/cart');
+  // Product.fetchAll((products) => {
+  //   res.render('shop/cart', {
+  //     // default your are in views folder
+  //     prods: products,
+  //     pageTitle: 'Cart',
+  //     path: '/cart',
+  //   });
+  // });
+};
 exports.getCheckout = (req, res, next) => {
   Product.fetchAll((products) => {
     res.render('shop/checkout', {
