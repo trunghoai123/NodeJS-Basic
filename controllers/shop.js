@@ -1,4 +1,5 @@
 const Product = require('../models/product');
+const Cart = require('../models/cart');
 
 exports.getProducts = (req, res, next) => {
   Product.fetchAll((products) => {
@@ -10,6 +11,7 @@ exports.getProducts = (req, res, next) => {
     });
   });
 };
+
 exports.getIndex = (req, res, next) => {
   Product.fetchAll((products) => {
     res.render('shop/index', {
@@ -20,6 +22,7 @@ exports.getIndex = (req, res, next) => {
     });
   });
 };
+
 exports.getCart = (req, res, next) => {
   Product.fetchAll((products) => {
     res.render('shop/cart', {
@@ -30,18 +33,45 @@ exports.getCart = (req, res, next) => {
     });
   });
 };
+
 exports.postCart = (req, res, next) => {
-  console.log(req.body.productId);
+  Product.findById(req.body.productId, (product) => {
+    Cart.addProduct(product.id, product.price); 
+  });
   res.redirect('/cart');
-  // Product.fetchAll((products) => {
-  //   res.render('shop/cart', {
-  //     // default your are in views folder
-  //     prods: products,
-  //     pageTitle: 'Cart',
-  //     path: '/cart',
-  //   });
-  // });
 };
+
+exports.getCart = (req, res, next) => {
+  Cart.getProducts((cart) => {
+    if(cart !== null){
+      Product.fetchAll((products) => {
+        const displayedCartProducts = [];
+        for (let product of products){
+          const cartProduct = cart.products.find(p => p.id === product.id);
+          if(cartProduct){
+            displayedCartProducts.push({ productData: product, qty: cartProduct.qty });
+          }
+        }
+        res.render('shop/cart', {
+          products: displayedCartProducts,
+          pageTitle: 'cart',
+          path: '/cart',
+        });
+      });
+    }
+  })
+};
+
+exports.postDeleteCart = (req, res, next) => {
+  const productId = req.body.productId;
+  if(productId){
+    Product.findById(productId, (product) => {
+      Cart.deleteById(productId, product.price);
+      res.redirect('/cart');
+    })
+  }
+};
+
 exports.getCheckout = (req, res, next) => {
   Product.fetchAll((products) => {
     res.render('shop/checkout', {
@@ -52,6 +82,7 @@ exports.getCheckout = (req, res, next) => {
     });
   });
 };
+
 exports.getOrders = (req, res, next) => {
   Product.fetchAll((products) => {
     res.render('shop/orders', {
@@ -62,8 +93,9 @@ exports.getOrders = (req, res, next) => {
     });
   });
 };
+
 exports.getProductDetail = (req, res, next) => {
-  Product.findProduct(req.params.productId, (product) => {
+  Product.findById(req.params.productId, (product) => {
     res.render('shop/product-detail', {
       // default your are in views folder
       prod: product,
@@ -71,5 +103,4 @@ exports.getProductDetail = (req, res, next) => {
       path: '/products',
     });
   });
-
 };
