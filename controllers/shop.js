@@ -1,26 +1,24 @@
 const Product = require('../models/product');
 const Cart = require('../models/cart');
 
-exports.getProducts = (req, res, next) => {
-  Product.fetchAll((products) => {
+exports.getProducts = (req, res, next) => { 
+  Product.fetchAll().then(([rows, fieldData]) => {
     res.render('shop/product-list', {
-      // default your are in views folder
-      prods: products,
-      pageTitle: 'Products',
+      prods: rows,
+      pageTitle: 'Products', 
       path: '/products',
     });
-  });
+  }).catch(err => console.log(err));
 };
 
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll((products) => {
+  Product.fetchAll().then(([rows, fieldData]) => {
     res.render('shop/index', {
-      // default your are in views folder
-      prods: products,
+      prods: rows,
       pageTitle: 'Shop',
       path: '/',
     });
-  });
+  }).catch(err => console.log(err));
 };
 
 exports.getCart = (req, res, next) => {
@@ -95,12 +93,14 @@ exports.getOrders = (req, res, next) => {
 };
 
 exports.getProductDetail = (req, res, next) => {
-  Product.findById(req.params.productId, (product) => {
-    res.render('shop/product-detail', {
-      // default your are in views folder
-      prod: product,
-      pageTitle: 'Details',
-      path: '/products',
-    });
-  });
+  
+  Product.findById(req.params.productId)
+    .then(([product]) => {
+      res.render('shop/product-detail', {
+        prod: product[0],
+        pageTitle: 'Details',
+        path: '/products',
+      });
+    })
+    .catch(err => console.log(err));
 };

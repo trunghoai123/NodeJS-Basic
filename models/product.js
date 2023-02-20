@@ -1,6 +1,7 @@
 const pathLb = require('path');
 const fs = require('fs');
 const Cart = require('../models/cart');
+const db = require('../util/database');
 
 const path = pathLb.join(pathLb.dirname(process.mainModule.filename), 'data', 'products.json');
 const getProductsFromFile = (callback) => {
@@ -24,24 +25,28 @@ module.exports = class Product {
   }
   
   save() {
-    getProductsFromFile((products) => {
-      const updatedProducts = [...products];
-      if(this.id){
-        const indexUpdatedProduct = products.findIndex(p => p.id === this.id)
-        updatedProducts[indexUpdatedProduct] = this;
-      }
-      else{
-        this.id = Math.random().toString();
-        updatedProducts.push(this);
-      }
-      fs.writeFile(path, JSON.stringify(updatedProducts), (err) => {
-        console.log(err)
-      });
-    });
+    return db.execute(
+      'INSERT INTO products (title, price, description, imageUrl) values(?,?,?,?)',
+      [this.title, this.price, this.description, this.imageUrl]
+    );
+    // getProductsFromFile((products) => {
+    //   const updatedProducts = [...products];
+    //   if(this.id){
+    //     const indexUpdatedProduct = products.findIndex(p => p.id === this.id)
+    //     updatedProducts[indexUpdatedProduct] = this;
+    //   }
+    //   else{
+    //     this.id = Math.random().toString();
+    //     updatedProducts.push(this);
+    //   }
+    //   fs.writeFile(path, JSON.stringify(updatedProducts), (err) => {
+    //     console.log(err)
+    //   });
+    // });
   }
 
-  static fetchAll(callback) {
-    getProductsFromFile(callback);
+  static fetchAll() {
+    return db.execute('SELECT * FROM products');
   }
 
   static deleteById(productId){
@@ -54,11 +59,7 @@ module.exports = class Product {
     })
   }
 
-  static findById(productId, callback) {
-    getProductsFromFile((products) => {
-      const product  = products.find((prod) => prod.id === productId);
-      callback(product);
-    })
+  static findById(productId) {
+    return db.execute('SELECT * FROM products WHERE products.id = ?', [productId]);
   }
-
 };
