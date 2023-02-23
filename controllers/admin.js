@@ -13,14 +13,33 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const description = req.body.description;
   const price = req.body.price;
-  const product = new Product(null, title, imageUrl, description, price);
-  product.save()
-    .then((data) => {
-      console.log(data);
-      res.redirect('/');
-    })
-    .catch(err => console.log(err));
-  
+  req.user.createProduct({ 
+    title: title,
+    price: price,
+    imageUrl: imageUrl,
+    description: description,
+  })
+  .then((data) => {
+    console.log(data);
+    res.redirect('/admin/products');
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+  // Product
+  //   .create({ 
+  //     title: title,
+  //     price: price,
+  //     imageUrl: imageUrl,
+  //     description: description,
+  //   })
+  //   .then((data) => {
+  //     console.log(data);
+  //     res.redirect('/admin/products');
+  //   })
+  //   .catch((err) => {
+  //     console.log(err);
+  //   });
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -29,17 +48,22 @@ exports.getEditProduct = (req, res, next) => {
   if(!editting){
     return res.redirect('/');
   }
-  Product.findById(productId, (product) => {
-    if(!product){
+  Product.findByPk(productId)
+    .then((data) => {
+      if(!data){
+        res.redirect('/');
+      }
+      res.render('admin/edit-product', { // default your are in views folder
+        pageTitle: 'Edit Products',
+        path: '/admin/edit-product',
+        editting,
+        product: data,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
       res.redirect('/');
-    }
-    res.render('admin/edit-product', { // default your are in views folder
-      pageTitle: 'Edit Products',
-      path: '/admin/edit-product', 
-      editting,
-      product,
-    });
-  });
+    }); 
 };
 exports.postEditProduct = (req, res, next) => {
   const id = req.body.productId;
@@ -47,38 +71,42 @@ exports.postEditProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  const product = new Product(id, title, imageUrl, description, price);
-  product.save();
-  res.redirect('/');
+  Product.update({
+    price,
+    title,
+    description,
+    imageUrl,
+  }, 
+  { where: { id: id } })
+  .then((rs) => {
+    res.redirect('/');
+  })
+  .catch((err) => {
+    console.log(err);
+  })
 };
 
 exports.postDeleteProduct = (req, res, next) => {
-  Product.deleteById(req.body.productId);
-  res.redirect('/admin/products');
+  // Product.deleteById(req.body.productId);
+  Product.destroy({ where: { id:req.body.productId}})
+    .then((rs) => {
+      res.redirect('/admin/products');
+    })
+    .catch((err) => {
+      console.log(err);
+    })
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll(
-    (products) => {
+  Product.findAll()
+    .then((data) => {
       res.render('admin/products', { // default your are in views folder
-        prods: products,
+        prods: data,
         pageTitle: 'Admin Products',
         path: '/admin/products', 
       });
-    }
-  );
-};
-
-
-
-// exports.getProducts = (req, res, next) => {
-//   Product.fetchAll(
-//     (products) => {
-//       res.render('admin/products', { // default your are in views folder
-//         prods: products,
-//         pageTitle: 'Admin Products',
-//         path: '/admin/products', 
-//       });
-//     }
-//   );
-// };
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}; 
