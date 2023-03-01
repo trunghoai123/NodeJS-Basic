@@ -98,7 +98,7 @@ exports.postDeleteProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.findAll()
+  req.user.getProducts()
     .then((data) => {
       res.render('admin/products', { // default your are in views folder
         prods: data,
