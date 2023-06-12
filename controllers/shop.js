@@ -1,5 +1,4 @@
 const Product = require('../models/product');
-const Cart = require('../models/cart');
 
 exports.getProducts = (req, res, next) => {
   Product.findAll()
@@ -97,12 +96,23 @@ exports.getCart = (req, res, next) => {
 
 exports.postDeleteCart = (req, res, next) => {
   const productId = req.body.productId;
-  if (productId) {
-    Product.findById(productId, (product) => {
-      Cart.deleteById(productId, product.price);
-      res.redirect('/cart');
-    });
-  }
+  req.user
+    .getCart()
+    .then((cart) => {
+      return cart.getProducts({ where: { id: productId } });
+    })
+    .then((products) => {
+      const product = products[0];
+      return product.cartItem.destroy();
+    })
+    .then(res.redirect('./cart'))
+    .catch((err) => console.log(err));
+  // if (productId) {
+  //   Product.findById(productId, (product) => {
+  //     Cart.deleteById(productId, product.price);
+  //     res.redirect('/cart');
+  //   });
+  // }
 };
 
 exports.getCheckout = (req, res, next) => {
@@ -116,16 +126,49 @@ exports.getCheckout = (req, res, next) => {
   });
 };
 
-exports.getOrders = (req, res, next) => {
-  Product.fetchAll((products) => {
-    res.render('shop/orders', {
-      // default your are in views folder
-      prods: products,
-      pageTitle: 'Orders',
-      path: '/orders',
+exports.postOrder = (req, res, next) => {
+  req.user
+    .getCart()
+    .then((cart) => {
+      return cart.getProducts();
+    })
+    .then((products) => {
+      req.user
+        .createOrder()
+        .then((order) => {
+          return order.addProducts(
+            products.map((product) => {
+              product.orderItem = { quantity: product.cartItem.quantity };
+              return product;
+            })
+          );
+        })
+        .catch((err) => console.log(err));
+    })
+    .then((result) => {
+      res.redirect('/orders');
+    })
+    .catch(() => {
+      (err) => console.log(err);
     });
+};
+
+exports.getOrders = (req, res, next) => {
+  res.render('shop/orders', {
+    path: '/orders',
+    pageTitle: 'Your Orders',
   });
 };
+// exports.getOrders = (req, res, next) => {
+//   Product.fetchAll((products) => {
+//     res.render('shop/orders', {
+//       // default your are in views folder
+//       prods: products,
+//       pageTitle: 'Orders',
+//       path: '/orders',
+//     });
+//   });
+// };
 
 exports.getProductDetail = (req, res, next) => {
   Product.findByPk(req.params.productId)
