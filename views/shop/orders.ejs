@@ -2,7 +2,26 @@
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/product.css" />
   </head>
-
   <body>
-    <%- include('../includes/navigation.ejs')%> 
+    <%- include('../includes/navigation.ejs')%>
+    <main>
+      <% if( orders.length ) { %>
+        <%= orders.length %>
+        <h1>My Orders</h1>
+        <ul>
+          <% for(let order of orders) { %>
+            <li>
+              <h2><% order.id %></h2>
+              <ul>
+              <% for(let product of order.products) { %>
+                <li><%= product.title %> (<%= product.orderItem.quantity %>) </li>
+              <% } %>
+              </ul>
+            </li>
+          <% } %>
+        </ul>
+      <% } else { %> 
+        <h1>No orders yet</h1>
+      <% } %>
+    </main>
 <%- include('../includes/end.ejs')%>

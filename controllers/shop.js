@@ -27,7 +27,6 @@ exports.getIndex = (req, res, next) => {
       console.log(err);
     });
 };
-
 // exports.getCart = (req, res, next) => {
 //   Product.fetchAll((products) => {
 //     res.render('shop/cart', {
@@ -127,9 +126,11 @@ exports.getCheckout = (req, res, next) => {
 };
 
 exports.postOrder = (req, res, next) => {
+  let fetchedCart;
   req.user
     .getCart()
     .then((cart) => {
+      fetchedCart = cart;
       return cart.getProducts();
     })
     .then((products) => {
@@ -145,7 +146,10 @@ exports.postOrder = (req, res, next) => {
         })
         .catch((err) => console.log(err));
     })
-    .then((result) => {
+    .then(() => {
+      return fetchedCart.setProducts(null);
+    })
+    .then(() => {
       res.redirect('/orders');
     })
     .catch(() => {
@@ -154,11 +158,23 @@ exports.postOrder = (req, res, next) => {
 };
 
 exports.getOrders = (req, res, next) => {
-  res.render('shop/orders', {
-    path: '/orders',
-    pageTitle: 'Your Orders',
-  });
+  req.user
+    .getOrders({ include: ['products'] })
+    .then((orders) => {
+      // console.log(orders[0].dataValues.products[0].dataValues.orderItem);
+      res.render('shop/orders', {
+        path: '/orders',
+        pageTitle: 'Your Orders',
+        orders: orders,
+      });
+    })
+    .catch((err) => console.log(err));
+  // res.render('shop/orders', {
+  //   path: '/orders',
+  //   pageTitle: 'Your Orders',
+  // });
 };
+
 // exports.getOrders = (req, res, next) => {
 //   Product.fetchAll((products) => {
 //     res.render('shop/orders', {
